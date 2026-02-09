@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>情绪颗粒度测试</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            padding: 30px 25px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        
+        h1 {
+            color: #5c6bc0;
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: 700;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 25px;
+            font-weight: 400;
+            font-size: 16px;
+        }
+        
+        .progress-container {
+            margin: 25px 0;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(to right, #5c6bc0, #7986cb);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .question-card {
+            display: none;
+        }
+        
+        .question-card.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .question-number {
+            color: #7986cb;
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .question-text {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 25px;
+            color: #333;
+        }
+        
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .option {
+            padding: 16px 20px;
+            border-radius: 12px;
+            background-color: #f8f9fa;
+            border: 2px solid #e9ecef;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        
+        .option:hover {
+            background-color: #f1f3f9;
+            transform: translateY(-2px);
+        }
+        
+        .option.selected {
+            background-color: #e8eaf6;
+            border-color: #5c6bc0;
+            box-shadow: 0 5px 15px rgba(92, 107, 192, 0.1);
+        }
+        
+        .option-text {
+            flex-grow: 1;
+            font-size: 16px;
+        }
+        
+        .option-check {
+            color: #5c6bc0;
+            font-size: 18px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        
+        .option.selected .option-check {
+            opacity: 1;
+        }
+        
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 14px 28px;
+            border-radius: 12px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-prev {
+            background-color: #f8f9fa;
+            color: #495057;
+            border: 2px solid #e9ecef;
+        }
+        
+        .btn-next {
+            background-color: #5c6bc0;
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .result-card {
+            text-align: center;
+            display: none;
+        }
+        
+        .result-icon {
+            font-size: 70px;
+            color: #5c6bc0;
+            margin: 20px 0;
+        }
+        
+        .result-title {
+            color: #5c6bc0;
+            font-size: 26px;
+            margin-bottom: 15px;
+        }
+        
+        .score-container {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: conic-gradient(#5c6bc0 0% 0%, #e0e0e0 0% 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        
+        .score-inner {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .score-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #5c6bc0;
+        }
+        
+        .score-text {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .result-description {
+            text-align: left;
+            margin: 25px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            font-size: 16px;
+        }
+        
+        .result-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+        }
+        
+        .btn-restart {
+            background-color: #7986cb;
+            color: white;
+        }
+        
+        .btn-share {
+            background-color: #f8f9fa;
+            color: #495057;
+            border: 2px solid #e9ecef;
+        }
+        
+        .footer {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        /* 欢迎页面样式 */
+        .welcome-card {
+            text-align: center;
+        }
+        
+        .welcome-icon {
+            font-size: 70px;
+            color: #5c6bc0;
+            margin: 20px 0;
+        }
+        
+        .welcome-text {
+            margin: 20px 0;
+            font-size: 16px;
+            color: #666;
+        }
+        
+        .feature-list {
+            text-align: left;
+            margin: 25px 0;
+            padding-left: 20px;
+        }
+        
+        .feature-list li {
+            margin-bottom: 12px;
+            color: #555;
+        }
+        
+        .btn-start {
+            background-color: #5c6bc0;
+            color: white;
+            width: 100%;
+            margin-top: 20px;
+            padding: 18px;
+            font-size: 18px;
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 480px) {
+            .card {
+                padding: 25px 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .question-text {
+                font-size: 17px;
+            }
+            
+            .option {
+                padding: 14px 18px;
+            }
+            
+            .btn {
+                padding: 12px 20px;
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 欢迎页面 -->
+        <div class="card welcome-card" id="welcome-card">
+            <h1>情绪颗粒度测试</h1>
+            <div class="subtitle">了解你识别和表达情绪的能力</div>
+            
+            <div class="welcome-icon">
+                <i class="fas fa-brain"></i>
+            </div>
+            
+            <p class="welcome-text">
+                情绪颗粒度是指个体区分和描述自身情绪体验的能力。高情绪颗粒度的人能更精确地识别和表达情绪，这有助于更好的情绪调节和心理健康。
+            </p>
+            
+            <ul class="feature-list">
+                <li>10个精心设计的问题</li>
+                <li>评估你的情绪识别能力</li>
+                <li>提供个性化反馈和建议</li>
+                <li>完全免费，无需注册</li>
+            </ul>
+            
+            <button class="btn btn-start" id="start-btn">
+                <i class="fas fa-play-circle"></i> 开始测试
+            </button>
+            
+            <div class="footer">
+                本测试仅供参考，不构成专业心理评估
+            </div>
+        </div>
+        
+        <!-- 测试问题容器 -->
+        <div class="card question-card" id="question-container">
+            <h1>情绪颗粒度测试</h1>
+            <div class="subtitle">请根据你的真实感受选择答案</div>
+            
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress" id="progress-bar"></div>
+                </div>
+                <div class="progress-text">
+                    <span id="current-question">1</span> / <span id="total-questions">10</span>
+                </div>
+            </div>
+            
+            <div class="question-number">问题 <span id="q-number">1</span></div>
+            <div class="question-text" id="question-text"></div>
+            
+            <div class="options" id="options-container">
+                <!-- 选项将通过JavaScript动态生成 -->
+            </div>
+            
+            <div class="buttons">
+                <button class="btn btn-prev" id="prev-btn" disabled>
+                    <i class="fas fa-arrow-left"></i> 上一题
+                </button>
+                <button class="btn btn-next" id="next-btn">
+                    下一题 <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- 结果页面 -->
+        <div class="card result-card" id="result-card">
+            <h1>测试完成</h1>
+            <div class="subtitle">你的情绪颗粒度测试结果</div>
+            
+            <div class="result-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            
+            <div class="result-title" id="result-title"></div>
+            
+            <div class="score-container">
+                <div class="score-circle" id="score-circle">
+                    <div class="score-inner">
+                        <div class="score-value" id="score-value">0</div>
+                        <div class="score-text">得分</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="result-description" id="result-description">
+                <!-- 结果描述将通过JavaScript动态生成 -->
+            </div>
+            
+            <div class="result-actions">
+                <button class="btn btn-restart" id="restart-btn">
+                    <i class="fas fa-redo"></i> 重新测试
+                </button>
+                <button class="btn btn-share" id="share-btn">
+                    <i class="fas fa-share-alt"></i> 分享结果
+                </button>
+            </div>
+            
+            <div class="footer">
+                情绪颗粒度可以通过正念练习和情绪日记等方式提高
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 测试问题数据
+        const questions = [
+            {
+                text: "当你感到不开心时，你通常能够：",
+                options: [
+                    "精确描述为什么不开心（如：我感到失望，因为我的期望没有实现）",
+                    "大致知道原因但不太确定具体情绪（如：感觉不太好，但说不清为什么）",
+                    "只知道情绪是负面的，但很难识别具体是什么",
+                    "几乎无法识别自己的情绪，只是感到不舒服"
+                ],
+                scores: [4, 3, 2, 1]
+            },
+            {
+                text: "当朋友情绪低落时，你通常能：",
+                options: [
+                    "准确识别他们的情绪并理解原因（如：他感到沮丧，因为项目失败了）",
+                    "大致知道他们的情绪状态，但不太确定细节",
+                    "只能分辨出他们是开心还是不开心",
+                    "很难察觉别人的情绪变化"
+                ],
+                scores: [4, 3, 2, 1]
+            },
+            {
+                text: "你使用情绪词汇的丰富程度如何？",
+                options: [
+                    "非常丰富，能使用许多精确的情绪词汇",
+                    "比较丰富，能使用一些基本情绪词汇",
+                    "有限，主要使用开心、难过等基本词汇",
+                    "非常有限，很少使用情绪词汇"
+                ],
+                scores: [4, 3, 2, 1]
+            },
+            {
+                text: "当你感到压力时，你能够：",
+                options: [
+                    "清楚识别压力的具体来源和相关的复杂情绪",
+                    "知道有压力，但不确定具体原因和情绪",
+                    "感到不舒服，但不确定是不是压力",
+                    "很少意识到自己正处于压力状态"
+                ],
+                scores: [4, 3, 2, 1]
+            },
+            {
+                text: "你对电影或小说中人物情绪的理解程度如何？",
+                options: [
+                    "能深入理解人物的复杂情绪和动机",
+                    "能理解基本情绪，但复杂情绪理解有限",
+                    "只能理解非常明显的基本情绪",
+                    "很少关注或理解人物的情绪"
+                ],
+                scores: [4, 3, 2, 1]
+            },
+            {
+                text: "你区分相似情绪的能力如何？比如沮丧和失望？",
+                options: [
+                    "能清晰区分并描述这些情绪的细微差别",
+                    "大致能区分，但描述起来有困难",
+                    "感觉它们差不多，很难区分",
+                    "从未思考过这些情绪的差异"
+                ],
+                scores: [4, 3, 2, 1]
+            },
+            {
+                text: "你向他人描述自己感受的精确程度如何？",
+                options: [
+                    "非常精确，能用恰当的词汇描述复杂感受",
+                    "比较精确，但有时找不到合适的词汇",
+                    "比较模糊，常用\"感觉不错\"或\"感觉不好\"",
+                    "很少描述自己的感受，因为不知道如何表达"
+                ],
+                scores: [4, 3, 2, 1]
+            },
+            {
+                text: "你识别身体感受与情绪联系的能力如何？",
+                options: [
+                    "很强，能清楚知道特定身体感受对应的情绪",
+                    "一般，有些身体感受能联想到情绪",
+                    "较弱，很少将身体感受与情绪联系起来",
+                    "几乎无法将身体感受与情绪联系"
+                ],
+                scores: [4, 3, 2, 1]
+            },
+            {
+                text: "你理解混合情绪（如既兴奋又紧张）的能力如何？",
+                options: [
+                    "很强，经常能体验到并理解混合情绪",
+                    "一般，有时能理解混合情绪",
+                    "较弱，很少意识到混合情绪的存在",
+                    "几乎不理解什么是混合情绪"
+                ],
+                scores: [4, 3, 2, 1]
+            },
+            {
+                text: "你通过艺术（音乐、绘画等）表达情绪的能力如何？",
+                options: [
+                    "很强，能用艺术形式精确表达复杂情绪",
+                    "一般，能表达一些基本情绪",
+                    "较弱，很难通过艺术表达情绪",
+                    "几乎无法通过艺术表达情绪"
+                ],
+                scores: [4, 3, 2, 1]
+            }
+        ];
+        
+        // 测试状态
+        let currentQuestion = 0;
+        let answers = [];
+        let totalScore = 0;
+        
+        // DOM元素
+        const welcomeCard = document.getElementById('welcome-card');
+        const questionContainer = document.getElementById('question-container');
+        const resultCard = document.getElementById('result-card');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const progressBar = document.getElementById('progress-bar');
+        const currentQuestionSpan = document.getElementById('current-question');
+        const totalQuestionsSpan = document.getElementById('total-questions');
+        const qNumberSpan = document.getElementById('q-number');
+        const scoreValue = document.getElementById('score-value');
+        const resultTitle = document.getElementById('result-title');
+        const resultDescription = document.getElementById('result-description');
+        const scoreCircle = document.getElementById('score-circle');
+        const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const shareBtn = document.getElementById('share-btn');
+        
+        // 初始化
+        function init() {
+            totalQuestionsSpan.textContent = questions.length;
+            answers = new Array(questions.length).fill(null);
+            
+            // 默认隐藏测试页面和结果页面
+            questionContainer.style.display = 'none';
+            resultCard.style.display = 'none';
+            welcomeCard.style.display = 'block';
+            
+            // 事件监听
+            startBtn.addEventListener('click', startTest);
+            prevBtn.addEventListener('click', prevQuestion);
+            nextBtn.addEventListener('click', nextQuestion);
+            restartBtn.addEventListener('click', restartTest);
+            shareBtn.addEventListener('click', shareResult);
+        }
+        
+        // 开始测试
+        function startTest() {
+            welcomeCard.style.display = 'none';
+            questionContainer.style.display = 'block';
+            showQuestion(currentQuestion);
+        }
+        
+        // 显示问题
+        function showQuestion(index) {
+            const question = questions[index];
+            questionText.textContent = question.text;
+            qNumberSpan.textContent = index + 1;
+            currentQuestionSpan.textContent = index + 1;
+            
+            // 更新进度条
+            const progress = ((index + 1) / questions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+            
+            // 清空选项
+            optionsContainer.innerHTML = '';
+            
+            // 添加选项
+            question.options.forEach((option, i) => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'option';
+                if (answers[index] === i) {
+                    optionElement.classList.add('selected');
+                }
+                
+                optionElement.innerHTML = `
+                    <div class="option-text">${option}</div>
+                    <div class="option-check"><i class="fas fa-check-circle"></i></div>
+                `;
+                
+                optionElement.addEventListener('click', () => selectOption(i));
+                optionsContainer.appendChild(optionElement);
+            });
+            
+            // 更新按钮状态
+            prevBtn.disabled = index === 0;
+            
+            if (index === questions.length - 1) {
+                nextBtn.innerHTML = '查看结果 <i class="fas fa-chart-bar"></i>';
+            } else {
+                nextBtn.innerHTML = '下一题 <i class="fas fa-arrow-right"></i>';
+            }
+            
+            // 检查是否已回答
+            checkAnswerStatus();
+        }
+        
+        // 选择选项
+        function selectOption(optionIndex) {
+            answers[currentQuestion] = optionIndex;
+            
+            // 更新UI
+            const options = document.querySelectorAll('.option');
+            options.forEach((option, i) => {
+                if (i === optionIndex) {
+                    option.classList.add('selected');
+                } else {
+                    option.classList.remove('selected');
+                }
+            });
+            
+            checkAnswerStatus();
+        }
+        
+        // 检查是否已回答
+        function checkAnswerStatus() {
+            nextBtn.disabled = answers[currentQuestion] === null;
+        }
+        
+        // 上一题
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                showQuestion(currentQuestion);
+            }
+        }
+        
+        // 下一题
+        function nextQuestion() {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                showQuestion(currentQuestion);
+            } else {
+                calculateResult();
+                showResult();
+            }
+        }
+        
+        // 计算结果
+        function calculateResult() {
+            totalScore = 0;
+            answers.forEach((answer, index) => {
+                if (answer !== null) {
+                    totalScore += questions[index].scores[answer];
+                }
+            });
+            
+            // 转换为百分比 (最低10分，最高40分)
+            const minScore = 10;
+            const maxScore = 40;
+            const scorePercent = Math.round(((totalScore - minScore) / (maxScore - minScore)) * 100);
+            return Math.max(0, Math.min(100, scorePercent));
+        }
+        
+        // 显示结果
+        function showResult() {
+            const scorePercent = calculateResult();
+            
+            questionContainer.style.display = 'none';
+            resultCard.style.display = 'block';
+            
+            // 设置分数
+            scoreValue.textContent = scorePercent;
+            
+            // 设置圆形进度条
+            const degrees = (scorePercent / 100) * 360;
+            scoreCircle.style.background = `conic-gradient(#5c6bc0 0% ${scorePercent}%, #e0e0e0 ${scorePercent}% 100%)`;
+            
+            // 根据分数设置结果
+            let title, description;
+            
+            if (scorePercent >= 80) {
+                title = "情绪颗粒度：非常高";
+                description = "你具有非常高的情绪颗粒度，能够精确识别和描述自己及他人的情绪。你能区分相似情绪的细微差别，并能准确理解复杂情绪状态。这种能力有助于你更好地管理情绪、与他人共情，并维持良好的心理健康。";
+            } else if (scorePercent >= 60) {
+                title = "情绪颗粒度：较高";
+                description = "你具有较高的情绪颗粒度，能够较好地识别和描述情绪。虽然有时可能难以表达复杂情绪，但总体上你对情绪有良好的理解能力。继续发展这种能力将有助于提高你的情绪智力。";
+            } else if (scorePercent >= 40) {
+                title = "情绪颗粒度：中等";
+                description = "你的情绪颗粒度处于中等水平。你能识别基本情绪，但可能难以区分相似情绪或理解复杂情绪。通过练习情绪识别和表达，你可以提高自己的情绪颗粒度。";
+            } else if (scorePercent >= 20) {
+                title = "情绪颗粒度：有待提高";
+                description = "你的情绪颗粒度有待提高。你可能难以准确识别和描述自己的情绪，这有时会影响你的情绪管理和人际沟通。建议通过情绪日记、正念练习等方式提高情绪觉察能力。";
+            } else {
+                title = "情绪颗粒度：需要关注";
+                description = "你的情绪颗粒度较低，可能很少关注或识别自己的情绪状态。这可能会影响你的情绪调节和心理健康。建议从基本情绪识别开始练习，必要时可寻求专业帮助。";
+            }
+            
+            resultTitle.textContent = title;
+            resultDescription.textContent = description;
+            
+            // 添加一些建议
+            resultDescription.innerHTML += `<br><br><strong>建议：</strong>`;
+            
+            if (scorePercent < 60) {
+                resultDescription.innerHTML += `
+                <ul style="margin-top: 10px; padding-left: 20px;">
+                    <li>每天花几分钟记录自己的情绪</li>
+                    <li>学习更多情绪词汇并尝试使用</li>
+                    <li>练习正念冥想，提高对当下感受的觉察</li>
+                    <li>观察他人的情绪表达并尝试理解</li>
+                </ul>`;
+            } else {
+                resultDescription.innerHTML += `
+                <ul style="margin-top: 10px; padding-left: 20px;">
+                    <li>继续深化对复杂情绪的理解</li>
+                    <li>尝试通过艺术形式表达情绪</li>
+                    <li>帮助他人识别和理解他们的情绪</li>
+                    <li>探索情绪与身体感受的深层联系</li>
+                </ul>`;
+            }
+        }
+        
+        // 重新测试
+        function restartTest() {
+            currentQuestion = 0;
+            answers = new Array(questions.length).fill(null);
+            resultCard.style.display = 'none';
+            questionContainer.style.display = 'block';
+            showQuestion(currentQuestion);
+        }
+        
+        // 分享结果
+        function shareResult() {
+            const scorePercent = calculateResult();
+            let level;
+            
+            if (scorePercent >= 80) level = "非常高";
+            else if (scorePercent >= 60) level = "较高";
+            else if (scorePercent >= 40) level = "中等";
+            else if (scorePercent >= 20) level = "有待提高";
+            else level = "需要关注";
+            
+            const shareText = `我的情绪颗粒度测试结果是：${level}（${scorePercent}分）。情绪颗粒度是指个体区分和描述自身情绪体验的能力，高情绪颗粒度有助于更好的情绪调节和心理健康。你也来测试一下吧！`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: '情绪颗粒度测试结果',
+                    text: shareText,
+                    url: window.location.href
+                });
+            } else {
+                // 复制到剪贴板作为备选方案
+                navigator.clipboard.writeText(shareText).then(() => {
+                    alert("结果已复制到剪贴板，可以粘贴到社交媒体分享！");
+                });
+            }
+        }
+        
+        // 初始化应用
+        init();
+    </script>
+</body>
+</html>
